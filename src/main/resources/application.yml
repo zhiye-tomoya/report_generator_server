@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: reportGenerator
+
+  # Set default profile to dev
+  profiles:
+    active: dev

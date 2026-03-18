@@ -1,0 +1,107 @@
+### API Test File for Report Generator
+### Use with VS Code REST Client extension
+### Click "Send Request" above each request to execute
+
+### Variables
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+### ===========================================
+### Authentication API
+### ===========================================
+
+### 1. User Registration
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Taro Yamada",
+  "email": "yamada@example.com",
+  "password": "password123"
+}
+
+### 2. Register Another User (for testing)
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Hanako Sato",
+  "email": "sato@example.com",
+  "password": "password456"
+}
+
+### 3. Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "yamada@example.com",
+  "password": "password123"
+}
+
+### 4. Get Current User Information (JWT required)
+# Paste the token obtained from login above
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### ===========================================
+### Error Case Tests
+### ===========================================
+
+### 5. Validation Error - Name too short
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "A",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 6. Validation Error - Password too short
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Test User",
+  "email": "test2@example.com",
+  "password": "12345"
+}
+
+### 7. Validation Error - Invalid email address
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Test User",
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### 8. Duplicate Error - Existing email address
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jiro Yamada",
+  "email": "yamada@example.com",
+  "password": "password123"
+}
+
+### 9. Login Error - Wrong password
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "yamada@example.com",
+  "password": "wrongpassword"
+}
+
+### 10. Login Error - Non-existent user
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "notexist@example.com",
+  "password": "password123"
+}
