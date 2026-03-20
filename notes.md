@@ -1,4 +1,14 @@
 ```
 docker compose up -build
-./gradlew test --tests "*repository.UserRepositoryTest"
 ```
+
+- `should check if user exists by email`
+-
+
+## TODO:
+
+### UserRepositoryTest
+
+- `should return true when email exists`
+- `should return false when email does not exist`
+- `should return empty optional when user not found by email`
