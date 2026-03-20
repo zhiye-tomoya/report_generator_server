@@ -1,10 +1,10 @@
 package com.example.reportGenerator.repository
 
 import com.example.reportGenerator.entity.User
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.assertj.core.api.Assertions.assertThat
 
 @DataJpaTest
 class UserRepositoryTest {
@@ -16,7 +16,7 @@ class UserRepositoryTest {
     fun `should find user by email`() {
         // Given
         val user = User(
-            username = "testuser",
+            name = "testuser",
             email = "test@example.com",
             password = "hashedpassword"
         )
@@ -26,17 +26,8 @@ class UserRepositoryTest {
         val found = userRepository.findByEmail("test@example.com")
 
         // Then
-        assertThat(found).isNotNull
-        assertThat(found?.username).isEqualTo("testuser")
+        assertThat(found).isPresent
+        assertThat(found.get().name).isEqualTo("testuser")
     }
 
-    @Test
-    fun `should check if user exists by email`() {
-
-    }
-
-    @Test
-    fun `should check if user exists by username`() {
-
-    }
 }
