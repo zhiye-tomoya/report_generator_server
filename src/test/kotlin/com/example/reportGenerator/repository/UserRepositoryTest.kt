@@ -2,7 +2,6 @@ package com.example.reportGenerator.repository
 
 import com.example.reportGenerator.entity.User
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -12,11 +11,6 @@ class UserRepositoryTest {
 
     @Autowired
     private lateinit var userRepository: UserRepository
-
-    @BeforeEach
-    fun setUp() {
-        userRepository.deleteAll()
-    }
 
     private fun createUser(
         name: String,
@@ -31,11 +25,7 @@ class UserRepositoryTest {
     @Test
     fun `should find user by email`() {
         // Given
-        val user = User(
-            name = "testuser",
-            email = "test@example.com",
-            password = "hashedpassword"
-        )
+        val user = createUser(name = "testuser", email = "test@example.com")
         userRepository.save(user)
 
         // When
@@ -44,36 +34,84 @@ class UserRepositoryTest {
         // Then
         assertThat(found).isPresent
         assertThat(found.get().name).isEqualTo("testuser")
-    }                            
+        assertThat(found.get().email).isEqualTo("test@example.com")
+    }
+
+    @Test
+    fun `should return empty optional when user not found by email`() {
+        // When
+        val found = userRepository.findByEmail("nonexistent@example.com")
+
+        // Then
+        assertThat(found).isEmpty()
+    }
 
     @Test
     fun `should return true when email exists`() {
-        val user = User(
-            name = "testuser",
-            email = "test@example.com",
-            password = "password123"     
-        )
+        // Given
+        val user = createUser(name = "testuser", email = "test@example.com")
         userRepository.save(user)
 
+        // When
         val exists = userRepository.existsByEmail("test@example.com")
 
-        assertThat(exists).isTrue()    
+        // Then
+        assertThat(exists).isTrue()
     }
 
     @Test
-    fun `should return false when email does not exist`(){
+    fun `should return false when email does not exist`() {
+        // When
+        val exists = userRepository.existsByEmail("nonexistent@example.com")
 
-        val exists = userRepository.existsByEmail("test@exapmle.com")
-
-        assertThat(exists).isFalse()   
+        // Then
+        assertThat(exists).isFalse()
     }
 
-@Test
-fun `should return empty optional when user not found by email`(){
+    @Test
+    fun `should save user with all required fields`() {
+        // Given
+        val user = createUser(name = "testuser", email = "test@example.com")
 
-     val found = userRepository.findByEmail("test@exapmle.com")
+        // When
+        val saved = userRepository.save(user)
 
-     assertThat(found).isEmpty
-}
+        // Then
+        assertThat(saved.id).isNotNull()
+        assertThat(saved.createdAt).isNotNull()
+        assertThat(saved.name).isEqualTo("testuser")
+        assertThat(saved.email).isEqualTo("test@example.com")
+        assertThat(saved.password).isEqualTo("password123")
+    }
 
+    @Test
+    fun `should handle case sensitivity in email search`() {
+        // Given
+        val user = createUser(name = "testuser", email = "Test@Example.com")
+        userRepository.save(user)
+
+        // When & Then
+        assertThat(userRepository.findByEmail("test@example.com")).isEmpty()
+        assertThat(userRepository.findByEmail("Test@Example.com")).isPresent
+    }
+
+    @Test
+    fun `should find multiple users and verify uniqueness by email`() {
+        // Given
+        val user1 = createUser(name = "user1", email = "user1@example.com")
+        val user2 = createUser(name = "user2", email = "user2@example.com")
+        userRepository.save(user1)
+        userRepository.save(user2)
+
+        // When
+        val foundUser1 = userRepository.findByEmail("user1@example.com")
+        val foundUser2 = userRepository.findByEmail("user2@example.com")
+
+        // Then
+        assertThat(foundUser1).isPresent
+        assertThat(foundUser2).isPresent
+        assertThat(foundUser1.get().id).isNotEqualTo(foundUser2.get().id)
+        assertThat(foundUser1.get().email).isEqualTo("user1@example.com")
+        assertThat(foundUser2.get().email).isEqualTo("user2@example.com")
+    }
 }
