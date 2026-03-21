@@ -4,5 +4,8 @@ docker compose up -build
 
 ## TODO:
 
-- UserRepositoryTest.ktを見る
-- report entityの作成
+- Look into UserRepositoryTest.kt
+- Create report entity
+  - Column
+    - title
+    - notes

@@ -8,3 +8,8 @@ spring:
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
+
+jwt:
+  secret: test-secret-key-minimum-256-bits-for-hs256-algorithm-test-environment-only-for-testing
+  expiration: 86400000
+  refresh-expiration: 604800000
