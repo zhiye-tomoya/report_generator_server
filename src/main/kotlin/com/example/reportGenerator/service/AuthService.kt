@@ -22,15 +22,16 @@ class AuthService(
     private val logger = LoggerFactory.getLogger(AuthService::class.java)
 
     fun register(request: RegisterRequest): UserResponse {
-        logger.info("Registering new user with email: ${request.email}")
+        val normalizedEmail = request.email.lowercase()
+        logger.info("Registering new user with email: $normalizedEmail")
 
-        if (userRepository.existsByEmail(request.email)) {
-            throw ResourceAlreadyExistsException("Email already exists: ${request.email}")
+        if (userRepository.existsByEmail(normalizedEmail)) {
+            throw ResourceAlreadyExistsException("Email already exists: $normalizedEmail")
         }
 
         val user = User(
             name = request.name,
-            email = request.email,
+            email = normalizedEmail,
             password = passwordEncoder.encode(request.password) ?: ""
         )
 
@@ -46,18 +47,19 @@ class AuthService(
     }
 
     fun login(request: LoginRequest): AuthResponse {
-        logger.info("User login attempt for email: ${request.email}")
+        val normalizedEmail = request.email.lowercase()
+        logger.info("User login attempt for email: $normalizedEmail")
 
         val authentication = authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken(request.email, request.password)
+            UsernamePasswordAuthenticationToken(normalizedEmail, request.password)
         )
 
         SecurityContextHolder.getContext().authentication = authentication
 
         val token = jwtTokenProvider.generateToken(authentication)
-        val refreshToken = jwtTokenProvider.generateRefreshToken(request.email)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(normalizedEmail)
 
-        logger.info("User logged in successfully: ${request.email}")
+        logger.info("User logged in successfully: $normalizedEmail")
 
         return AuthResponse(
             token = token,
