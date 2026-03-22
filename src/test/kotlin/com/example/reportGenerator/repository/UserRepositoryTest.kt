@@ -23,6 +23,18 @@ class UserRepositoryTest {
     )
 
     @Test
+    fun `should automatically lowercase email at the entity level`() {
+        // Given
+        val user = createUser(name = "testuser", email = "TEST@EXAMPLE.COM")
+
+        // When
+        val saved = userRepository.save(user)
+
+        // Then
+        assertThat(saved.email).isEqualTo("test@example.com")
+    }
+
+    @Test
     fun `should find user by email`() {
         // Given
         val user = createUser(name = "testuser", email = "test@example.com")
@@ -85,14 +97,18 @@ class UserRepositoryTest {
     }
 
     @Test
-    fun `should handle case sensitivity in email search`() {
+    fun `should find user by normalized lowercase email`() {
         // Given
         val user = createUser(name = "testuser", email = "Test@Example.com")
         userRepository.save(user)
 
-        // When & Then
-        assertThat(userRepository.findByEmail("test@example.com")).isEmpty()
-        assertThat(userRepository.findByEmail("Test@Example.com")).isPresent
+        // When & Then - 保存時に小文字化されるので、小文字で検索すれば見つかる
+        assertThat(userRepository.findByEmail("test@example.com")).isPresent
+        assertThat(userRepository.findByEmail("test@example.com").get().email)
+            .isEqualTo("test@example.com")
+        
+        // 大文字で検索すると見つからない（Repository層では正規化しない）
+        assertThat(userRepository.findByEmail("Test@Example.com")).isEmpty()
     }
 
     @Test

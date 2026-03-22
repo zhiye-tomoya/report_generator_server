@@ -1,5 +1,6 @@
 ```
 docker compose up -build
+./gradlew test --tests "com.example.reportGenerator.ReportGeneratorApplicationTests.contextLoads"
 ```
 
 ## TODO:
