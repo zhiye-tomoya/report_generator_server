@@ -44,6 +44,15 @@ Content-Type: {{contentType}}
 GET {{baseUrl}}/api/auth/me
 Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
+### 5. Refresh Token
+# Paste the refreshToken obtained from login above
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "YOUR_REFRESH_TOKEN_HERE"
+}
+
 ### ===========================================
 ### Error Case Tests
 ### ===========================================

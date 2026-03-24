@@ -85,4 +85,35 @@ class AuthService(
             createdAt = user.createdAt!!
         )
     }
+
+    fun refreshToken(request: RefreshTokenRequest): AuthResponse {
+        val refreshToken = request.refreshToken
+        logger.info("Token refresh request received")
+
+        // Validate the refresh token
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            logger.error("Invalid refresh token")
+            throw RuntimeException("Invalid refresh token")
+        }
+
+        // Extract email from refresh token
+        val email = jwtTokenProvider.getEmailFromToken(refreshToken)
+        logger.info("Refreshing token for user: $email")
+
+        // Verify user still exists
+        userRepository.findByEmail(email)
+            .orElseThrow { RuntimeException("User not found: $email") }
+
+        // Generate new tokens
+        val newAccessToken = jwtTokenProvider.generateTokenFromEmail(email)
+        val newRefreshToken = jwtTokenProvider.generateRefreshToken(email)
+
+        logger.info("Token refreshed successfully for user: $email")
+
+        return AuthResponse(
+            token = newAccessToken,
+            refreshToken = newRefreshToken,
+            expiresIn = jwtTokenProvider.getExpirationMs()
+        )
+    }
 }
