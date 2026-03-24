@@ -12,6 +12,11 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
+data class AuthResponseWithRefreshToken(
+    val authResponse: AuthResponse,
+    val refreshToken: String
+)
+
 @Service
 class AuthService(
     private val userRepository: UserRepository,
@@ -46,7 +51,7 @@ class AuthService(
         )
     }
 
-    fun login(request: LoginRequest): AuthResponse {
+    fun login(request: LoginRequest): AuthResponseWithRefreshToken {
         val normalizedEmail = request.email.lowercase()
         logger.info("User login attempt for email: $normalizedEmail")
 
@@ -61,10 +66,12 @@ class AuthService(
 
         logger.info("User logged in successfully: $normalizedEmail")
 
-        return AuthResponse(
-            token = token,
-            refreshToken = refreshToken,
-            expiresIn = jwtTokenProvider.getExpirationMs()
+        return AuthResponseWithRefreshToken(
+            authResponse = AuthResponse(
+                token = token,
+                expiresIn = jwtTokenProvider.getExpirationMs()
+            ),
+            refreshToken = refreshToken
         )
     }
 
@@ -86,8 +93,7 @@ class AuthService(
         )
     }
 
-    fun refreshToken(request: RefreshTokenRequest): AuthResponse {
-        val refreshToken = request.refreshToken
+    fun refreshToken(refreshToken: String): AuthResponseWithRefreshToken {
         logger.info("Token refresh request received")
 
         // Validate the refresh token
@@ -110,10 +116,12 @@ class AuthService(
 
         logger.info("Token refreshed successfully for user: $email")
 
-        return AuthResponse(
-            token = newAccessToken,
-            refreshToken = newRefreshToken,
-            expiresIn = jwtTokenProvider.getExpirationMs()
+        return AuthResponseWithRefreshToken(
+            authResponse = AuthResponse(
+                token = newAccessToken,
+                expiresIn = jwtTokenProvider.getExpirationMs()
+            ),
+            refreshToken = newRefreshToken
         )
     }
 }

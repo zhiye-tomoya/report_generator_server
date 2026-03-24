@@ -57,11 +57,16 @@ Content-Type: application/json
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "type": "Bearer",
   "expiresIn": 86400000
 }
 ```
+
+**Note:** The refresh token is automatically set as an HttpOnly cookie and is not included in the response body for security reasons.
+
+**Cookies Set:**
+
+- `refreshToken`: HttpOnly, Secure, Path=/api/auth, Max-Age=7 days
 
 #### 3. Get User Information (Authentication Required)
 
@@ -80,6 +85,28 @@ Authorization: Bearer <token>
   "createdAt": "2026-03-19T05:45:00"
 }
 ```
+
+#### 4. Refresh Token
+
+```
+POST /api/auth/refresh
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "type": "Bearer",
+  "expiresIn": 86400000
+}
+```
+
+**Note:** This endpoint reads the refresh token from the HttpOnly cookie set during login. A new access token and refresh token are generated and returned. The new refresh token is set as an HttpOnly cookie.
+
+**Cookies Set:**
+
+- `refreshToken`: HttpOnly, Secure, Path=/api/auth, Max-Age=7 days (updated with new token)
 
 ## Security Configuration
 
