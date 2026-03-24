@@ -1,5 +1,5 @@
 ```
-docker compose up -build
+docker compose up -d
 ./gradlew test --tests "com.example.reportGenerator.ReportGeneratorApplicationTests.contextLoads"
 git log --oneline -1
 git commit --amend -m "feat: implement email normalization"
