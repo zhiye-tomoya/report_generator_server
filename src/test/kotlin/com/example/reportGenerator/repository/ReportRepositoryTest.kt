@@ -6,12 +6,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
-import org.hibernate.annotations.CreationTimestamp
 import java.time.LocalDateTime
-import jakarta.persistence.criteria.From
 
 @DataJpaTest
-class ReportRepositoryTest{
+class ReportRepositoryTest {
 
     @Autowired
     private lateinit var reportRepository: ReportRepository
@@ -26,42 +24,52 @@ class ReportRepositoryTest{
     ): Report {
         val report = Report(
             title = title,
-            notes = notes,
-            createdAt = createdAt,
-            updatedAt = createdAt
+            notes = notes
         )
-        return entityManager.persistAndFlush(report)
+        val saved = entityManager.persistAndFlush(report)
+        
+        entityManager.entityManager.createNativeQuery(
+            "UPDATE reports SET created_at = :createdAt, updated_at = :updatedAt WHERE id = :id"
+        )
+            .setParameter("createdAt", createdAt)
+            .setParameter("updatedAt", createdAt)
+            .setParameter("id", saved.id)
+            .executeUpdate()
+        
+        entityManager.clear()
+        return entityManager.find(Report::class.java, saved.id)
     }
 
 
-@Test
-fun `should find reports within given date range`(){
+    @Test
+    fun `should find reports within given date range`() {
+        // Given
+        val startDate = LocalDateTime.of(2026, 3, 10, 0, 0, 0)
+        val endDate = LocalDateTime.of(2026, 3, 20, 23, 59, 59, 999999999)
 
-    val startDate = LocalDateTime.of(2026, 3, 10, 0, 0, 0)
-    val endDate = LocalDateTime.of(2026, 3, 20, 0, 0, 0)
+        createReport(
+            title = "Before range report",
+            createdAt = LocalDateTime.of(2026, 3, 5, 12, 0, 0)
+        )
 
-    createReport(
-        title = "Before range report",
-        createdAt = LocalDateTime.of(2026, 3, 5, 12, 0, 0)
-    )
+        val reportInRange = createReport(
+            title = "Within range report",
+            createdAt = LocalDateTime.of(2026, 3, 15, 12, 0, 0)
+        )
 
-    val reportInRange = createReport(
-        title = "Within range report",
-        createdAt = LocalDateTime.of(2026, 3, 15, 12, 0, 0)
-    )
+        createReport(
+            title = "After range report",
+            createdAt = LocalDateTime.of(2026, 3, 25, 12, 0, 0)
+        )
 
-     createReport(
-        title = "After range report",
-        createdAt = LocalDateTime.of(2026, 3, 25, 12, 0, 0)
-    )
+        // When
+        val result = reportRepository.findByCreatedAtBetween(startDate, endDate)
 
-    val result = reportRepository.findByCreatedAtBetween(startDate, endDate)
-
-    assertThat(result).hasSize(1)
-    assertThat(result[0].title).isEqualTo("Within range report")
-    assertThat(result[0].id).isEqualTo(reportInRange.id)
-    assertThat(result[0].createdAt).isBetween(startDate, endDate)
-
-}
+        // Then
+        assertThat(result).hasSize(1)
+        assertThat(result[0].title).isEqualTo("Within range report")
+        assertThat(result[0].id).isEqualTo(reportInRange.id)
+        assertThat(result[0].createdAt).isBetween(startDate, endDate)
+    }
 }
 

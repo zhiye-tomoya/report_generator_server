@@ -124,14 +124,14 @@ class AuthServiceTest {
 
         // Then
         verify(authenticationManager).authenticate(
-            argThat { token ->
-                token is UsernamePasswordAuthenticationToken &&
-                token.principal == normalizedEmail &&
-                token.credentials == "password123"
+            argThat { authToken ->
+                authToken is UsernamePasswordAuthenticationToken &&
+                authToken.principal == normalizedEmail &&
+                authToken.credentials == "password123"
             }
         )
         verify(jwtTokenProvider).generateRefreshToken(normalizedEmail)
-        assertThat(response.token).isEqualTo("test-token")
+        assertThat(response.authResponse.token).isEqualTo("test-token")
         assertThat(response.refreshToken).isEqualTo("refresh-token")
     }
 
@@ -155,12 +155,12 @@ class AuthServiceTest {
 
         // Then - 正規化されたメールアドレスで認証される
         verify(authenticationManager).authenticate(
-            argThat { token ->
-                token is UsernamePasswordAuthenticationToken &&
-                token.principal == normalizedEmail
+            argThat { authToken ->
+                authToken is UsernamePasswordAuthenticationToken &&
+                authToken.principal == normalizedEmail
             }
         )
-        assertThat(response.token).isNotNull()
+        assertThat(response.authResponse.token).isEqualTo("test-token")
     }
 
     @Test
